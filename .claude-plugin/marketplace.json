@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "saarthios-skills",
+  "owner": {
+    "name": "SaarthiOS",
+    "url": "https://github.com/SaarthiOS/contract-review"
+  },
+  "description": "Skills from SaarthiOS. Contract review that reads an agreement from your side, scores it, and redlines it as tracked changes with threaded comments.",
+  "plugins": [
+    {
+      "name": "contract-review",
+      "source": "./plugins/contract-review",
+      "description": "Review an NDA, MSA, DPA, employment, or licensing agreement from ONE party's side; score how balanced it is; produce a clause-by-clause redline; then regenerate the original .docx with tracked changes and native comments authored as you, threading onto and resolving any existing comments.",
+      "version": "1.0.0",
+      "author": { "name": "SaarthiOS" },
+      "homepage": "https://saarthios.github.io/contract-review/",
+      "repository": "https://github.com/SaarthiOS/contract-review",
+      "license": "MIT",
+      "keywords": ["legal", "contract", "nda", "redline", "review", "docx", "negotiation"],
+      "category": "legal"
+    }
+  ]
+}

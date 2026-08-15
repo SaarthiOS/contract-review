@@ -1,0 +1,23 @@
+{
+  "skill_name": "contract-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm the receiving party. Review this NDA and tell me how one-sided it is, then mark up the clauses that hurt us.",
+      "expected_output": "Fixes perspective to receiving party, scores favorability with rationale, produces a clause-by-clause redline table covering confidentiality/IP/indemnity/liability/jurisdiction, and generates the interactive review HTML.",
+      "files": ["acme_nda.docx"]
+    },
+    {
+      "id": 2,
+      "prompt": "Here are my accepted/rejected decisions from the review. Generate the marked-up Word doc as if I commented on it, keeping the counterparty's existing comments.",
+      "expected_output": "Produces original-format .docx with tracked changes and native comments authored as the user, replies to and resolves overlapping existing comment threads, leaves rejected items untouched, passes validate.py --author.",
+      "files": ["acme_nda_commented.docx", "analysis.json", "decisions.json"]
+    },
+    {
+      "id": 3,
+      "prompt": "Is this SaaS MSA fair to us as the customer? Focus on liability caps, indemnification, SLAs, and data protection, and suggest balanced language for anything off-market.",
+      "expected_output": "Customer-side analysis; flags one-sided/uncapped liability, one-way indemnity, weak SLAs, missing DPA/breach-notification; proposes balanced fallback language per clause; scores by category.",
+      "files": []
+    }
+  ]
+}

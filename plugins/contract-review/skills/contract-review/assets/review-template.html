@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contract Review</title>
+<style>
+  :root{
+    --bg:#f6f5f2; --panel:#ffffff; --ink:#1c1b19; --muted:#6b6862; --line:#e4e1da;
+    --accent:#3a5a78; --accent-ink:#22384a;
+    --crit:#b3261e; --crit-bg:#fbe9e7; --high:#c15400; --high-bg:#fdeddd;
+    --med:#8a6d00; --med-bg:#fbf3d6; --low:#4a5b52; --low-bg:#eef1ee;
+    --accept:#1f7a4d; --accept-bg:#e6f3ec; --reject:#8a2b25; --reject-bg:#f7e8e7;
+    --comment:#3a5a78; --comment-bg:#e9f0f5;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px 120px}
+
+  /* Header / score */
+  header{position:sticky;top:0;z-index:20;background:rgba(246,245,242,.92);
+    backdrop-filter:saturate(160%) blur(8px);border-bottom:1px solid var(--line)}
+  .hbar{max-width:1040px;margin:0 auto;padding:14px 20px;display:flex;gap:18px;align-items:center}
+  .doc-title{font-family:var(--serif);font-size:19px;font-weight:600;line-height:1.2}
+  .doc-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .gauge{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .score-num{font-family:var(--serif);font-size:30px;font-weight:700;line-height:1}
+  .score-of{font-size:13px;color:var(--muted)}
+  .favors{font-size:12px;color:var(--muted);max-width:230px}
+  .btn{font-family:var(--sans);font-size:13px;font-weight:600;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;
+    transition:.12s}
+  .btn:hover{border-color:#c9c5bc}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:var(--accent-ink)}
+
+  /* Intro */
+  .intro{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px;
+    margin:22px 0}
+  .intro h1{font-family:var(--serif);font-size:22px;margin:0 0 6px}
+  .intro p{margin:6px 0;font-size:14px;color:#38352f}
+  .meta-grid{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:12px;font-size:13px}
+  .meta-grid b{color:var(--muted);font-weight:600}
+  .cat-scores{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .cat{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:4px 11px;background:#fbfaf8}
+  .cat .n{color:var(--muted)}
+  .warn{margin-top:14px;font-size:12.5px;color:var(--high);background:var(--high-bg);
+    border:1px solid #f2d3b0;border-radius:8px;padding:9px 12px}
+
+  /* Toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 8px;
+    position:sticky;top:64px;z-index:10;background:var(--bg);padding:8px 0}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .fchip{font-size:12px;border:1px solid var(--line);background:var(--panel);border-radius:20px;
+    padding:5px 12px;cursor:pointer;user-select:none}
+  .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .counts{margin-left:auto;font-size:12.5px;color:var(--muted);display:flex;gap:14px}
+  .counts b{color:var(--ink)}
+
+  /* Finding cards */
+  .card{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:12px;
+    padding:18px 20px;margin:12px 0;scroll-margin-top:130px}
+  .card.sev-critical{border-left-color:var(--crit)} .card.sev-high{border-left-color:var(--high)}
+  .card.sev-medium{border-left-color:var(--med)} .card.sev-low{border-left-color:var(--low)}
+  .card.decided{background:#fcfbf9}
+  .card-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .sev{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    border-radius:6px;padding:3px 8px}
+  .sev-critical .sev,.sev.critical{color:var(--crit);background:var(--crit-bg)}
+  .sev-high .sev,.sev.high{color:var(--high);background:var(--high-bg)}
+  .sev-medium .sev,.sev.medium{color:var(--med);background:var(--med-bg)}
+  .sev-low .sev,.sev.low{color:var(--low);background:var(--low-bg)}
+  .fam{font-size:12px;color:var(--muted);text-transform:capitalize}
+  .ref{font-size:12px;color:var(--muted)}
+  .favtag{font-size:11.5px;color:var(--muted);margin-left:auto}
+  .status{font-size:11px;font-weight:700;border-radius:6px;padding:3px 9px;text-transform:uppercase;letter-spacing:.03em}
+  .status.accept{color:var(--accept);background:var(--accept-bg)}
+  .status.reject{color:var(--reject);background:var(--reject-bg)}
+  .status.comment{color:var(--comment);background:var(--comment-bg)}
+
+  .label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--muted);margin:14px 0 5px}
+  .orig{font-family:var(--serif);font-size:14px;background:#faf8f4;border:1px solid var(--line);
+    border-radius:8px;padding:11px 13px;white-space:pre-wrap}
+  .orig.empty{color:var(--muted);font-style:italic;font-family:var(--sans)}
+  .issue{font-size:14px;color:#38352f}
+  .edit-box{width:100%;font-family:var(--serif);font-size:14px;border:1px solid var(--line);
+    border-radius:8px;padding:11px 13px;background:#f2f7f3;color:var(--ink);resize:vertical;min-height:70px;line-height:1.45}
+  .edit-box:focus{outline:2px solid var(--accent);outline-offset:0;background:#fff}
+  .fallback{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .fallback b{color:#4a4740}
+  .note-box{width:100%;font-family:var(--sans);font-size:13px;border:1px dashed var(--line);
+    border-radius:8px;padding:9px 11px;background:#fff;resize:vertical;min-height:42px;margin-top:6px}
+
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+  .abtn{font-size:13px;font-weight:600;border:1px solid var(--line);background:var(--panel);
+    border-radius:8px;padding:8px 14px;cursor:pointer}
+  .abtn.on-accept{background:var(--accept);color:#fff;border-color:var(--accept)}
+  .abtn.on-reject{background:var(--reject);color:#fff;border-color:var(--reject)}
+  .abtn.on-comment{background:var(--comment);color:#fff;border-color:var(--comment)}
+  .ascomment{margin-left:6px;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .hidden{display:none!important}
+
+  /* Export bar */
+  .exportbar{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);
+    z-index:30;box-shadow:0 -4px 18px rgba(0,0,0,.05)}
+  .exportbar .inner{max-width:1040px;margin:0 auto;padding:12px 20px;display:flex;gap:14px;align-items:center}
+  .progress{font-size:13px;color:var(--muted)}
+  .progress b{color:var(--ink)}
+  .exportbar .btn{margin-left:auto}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(20,18,15,.5);z-index:40;display:none;
+    align-items:center;justify-content:center;padding:20px}
+  .modal.show{display:flex}
+  .sheet{background:var(--panel);border-radius:14px;max-width:760px;width:100%;padding:22px;
+    max-height:86vh;overflow:auto}
+  .sheet h2{font-family:var(--serif);margin:0 0 6px;font-size:20px}
+  .sheet p{font-size:13px;color:var(--muted);margin:4px 0 12px}
+  .json-out{width:100%;height:300px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12px;border:1px solid var(--line);border-radius:8px;padding:12px;background:#faf8f4;
+    white-space:pre;overflow:auto}
+  .sheet-actions{display:flex;gap:10px;margin-top:14px}
+  .foot{font-size:12px;color:var(--muted);text-align:center;margin-top:34px;padding-top:16px;
+    border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<script id="analysis-data" type="application/json">__ANALYSIS_JSON__</script>
+
+<header>
+  <div class="hbar">
+    <div>
+      <div class="doc-title" id="hTitle">Contract Review</div>
+      <div class="doc-sub" id="hSub"></div>
+    </div>
+    <div class="gauge">
+      <div style="text-align:right">
+        <span class="score-num" id="hScore">–</span><span class="score-of"> / 10</span>
+        <div class="favors" id="hFavors"></div>
+      </div>
+      <button class="btn primary" onclick="openExport()">Export decisions</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="intro">
+    <h1 id="iTitle"></h1>
+    <p id="iSummary"></p>
+    <div class="meta-grid" id="iMeta"></div>
+    <div class="cat-scores" id="iCats"></div>
+    <div class="warn">In-memory only — your choices are not saved if you refresh or close this file.
+      Click <b>Export decisions</b> when done and send the file back to generate the marked-up document.</div>
+  </section>
+
+  <div class="toolbar">
+    <div class="chips" id="sevChips"></div>
+    <div class="chips" id="catChips"></div>
+    <div class="counts">
+      <span>Accepted <b id="cAcc">0</b></span>
+      <span>Rejected <b id="cRej">0</b></span>
+      <span>Comment <b id="cCom">0</b></span>
+      <span>Undecided <b id="cUnd">0</b></span>
+    </div>
+  </div>
+
+  <div id="cards"></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<div class="exportbar">
+  <div class="inner">
+    <div class="progress"><b id="pDone">0</b> of <b id="pTotal">0</b> findings decided</div>
+    <button class="btn" onclick="quickAllAccept()">Accept all suggested</button>
+    <button class="btn primary" onclick="openExport()">Export decisions</button>
+  </div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="sheet">
+    <h2>Decisions export</h2>
+    <p>Copy this JSON or download the file, then send it back in the chat to generate the
+      commented, tracked-change version of your document.</p>
+    <textarea class="json-out" id="jsonOut" readonly></textarea>
+    <div class="sheet-actions">
+      <button class="btn primary" onclick="copyJson()">Copy JSON</button>
+      <button class="btn" onclick="downloadJson()">Download decisions.json</button>
+      <button class="btn" onclick="closeExport()" style="margin-left:auto">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = JSON.parse(document.getElementById('analysis-data').textContent);
+const state = {};            // id -> {action, final_edit, note, as_comment}
+let sevFilter = new Set();   // empty = all
+let catFilter = new Set();
+
+const SEVS = ['critical','high','medium','low'];
+
+function init(){
+  const d = DATA.document||{}, s = DATA.score||{};
+  document.getElementById('hTitle').textContent = d.title || 'Contract Review';
+  document.getElementById('hSub').textContent =
+    [d.type, d.reviewed_for ? 'for '+d.reviewed_for : '', d.perspective ? '('+d.perspective+')':'']
+      .filter(Boolean).join('  ·  ');
+  document.getElementById('hScore').textContent = (s.overall!=null)? s.overall : '–';
+  document.getElementById('hFavors').textContent = s.favors ? 'Currently favours: '+s.favors : '';
+  document.getElementById('iTitle').textContent = d.title || 'Contract Review';
+  document.getElementById('iSummary').textContent = s.summary || '';
+
+  const meta = document.getElementById('iMeta');
+  const rows = [];
+  if(d.parties) rows.push(['Parties', d.parties.join(' & ')]);
+  if(d.reviewed_for) rows.push(['Reviewed for', d.reviewed_for]);
+  if(d.perspective) rows.push(['Perspective', d.perspective]);
+  if(s.favors) rows.push(['Bias', 'favours '+s.favors]);
+  meta.innerHTML = rows.map(r=>`<span><b>${r[0]}:</b> ${esc(r[1])}</span>`).join('');
+
+  const cats = document.getElementById('iCats');
+  (s.categories||[]).forEach(c=>{
+    const el=document.createElement('span'); el.className='cat';
+    el.innerHTML=`${esc(cap(c.name))} <span class="n">${c.score}/10</span>`;
+    el.title=c.note||''; cats.appendChild(el);
+  });
+
+  // filter chips
+  const sc=document.getElementById('sevChips');
+  SEVS.forEach(sv=>{
+    const n=(DATA.findings||[]).filter(f=>f.severity===sv).length;
+    if(!n) return;
+    const c=document.createElement('span'); c.className='fchip'; c.dataset.sev=sv;
+    c.textContent=`${cap(sv)} (${n})`;
+    c.onclick=()=>{toggle(sevFilter,sv,c);render();};
+    sc.appendChild(c);
+  });
+  const cc=document.getElementById('catChips');
+  [...new Set((DATA.findings||[]).map(f=>f.category))].forEach(cat=>{
+    const c=document.createElement('span'); c.className='fchip'; c.dataset.cat=cat;
+    c.textContent=cap(cat);
+    c.onclick=()=>{toggle(catFilter,cat,c);render();};
+    cc.appendChild(c);
+  });
+
+  // seed state
+  (DATA.findings||[]).forEach(f=>{
+    state[f.id]={action:null, final_edit:f.suggested_edit||'', note:'',
+      as_comment:(f.kind!=='comment')};
+  });
+
+  document.getElementById('foot').textContent = DATA.disclaimer ||
+    'Analysis to support your review. Have a qualified lawyer review before signing.';
+  document.getElementById('pTotal').textContent = (DATA.findings||[]).length;
+  render();
+}
+
+function toggle(set,val,el){ if(set.has(val)){set.delete(val);el.classList.remove('on');}
+  else{set.add(val);el.classList.add('on');} }
+
+function render(){
+  const host=document.getElementById('cards'); host.innerHTML='';
+  const list=(DATA.findings||[]).filter(f=>
+    (sevFilter.size===0||sevFilter.has(f.severity)) &&
+    (catFilter.size===0||catFilter.has(f.category)));
+  // order by severity then id
+  list.sort((a,b)=>SEVS.indexOf(a.severity)-SEVS.indexOf(b.severity));
+  list.forEach(f=>host.appendChild(cardFor(f)));
+  updateCounts();
+}
+
+function cardFor(f){
+  const st=state[f.id];
+  const card=document.createElement('div');
+  card.className=`card sev-${f.severity}`+(st.action?' decided':'');
+  card.id='card-'+f.id;
+
+  const status = st.action ? `<span class="status ${st.action}">${st.action}</span>` : '';
+  const favTag = f.favors ? `<span class="favtag">favours ${esc(f.favors)}</span>` : '';
+  const origEmpty = !f.original_text;
+
+  card.innerHTML = `
+    <div class="card-top">
+      <span class="sev ${f.severity}">${f.severity}</span>
+      <span class="fam">${esc(cap(f.category))}</span>
+      ${f.clause_ref?`<span class="ref">· ${esc(f.clause_ref)}</span>`:''}
+      ${favTag}
+      ${status}
+    </div>
+    <div class="label">Current language</div>
+    <div class="orig ${origEmpty?'empty':''}">${origEmpty?'— missing clause / no text in document —':esc(f.original_text)}</div>
+    <div class="label">Issue</div>
+    <div class="issue">${esc(f.issue||'')}</div>
+    <div class="label">${f.kind==='comment'?'Proposed comment / ask (editable)':'Suggested balanced edit (editable)'}</div>
+    <textarea class="edit-box" oninput="setEdit('${f.id}',this.value)">${esc(st.final_edit||'')}</textarea>
+    ${f.fallback?`<div class="fallback"><b>Fallback:</b> ${esc(f.fallback)}</div>`:''}
+    <div class="label">Your note to the counterparty (optional)</div>
+    <textarea class="note-box" placeholder="e.g. Non-negotiable for us…" oninput="setNote('${f.id}',this.value)">${esc(st.note||'')}</textarea>
+    <div class="actions">
+      <button class="abtn ${st.action==='accept'?'on-accept':''}" onclick="decide('${f.id}','accept')">${f.kind==='comment'?'Accept (comment)':'Accept edit'}</button>
+      <button class="abtn ${st.action==='comment'?'on-comment':''}" onclick="decide('${f.id}','comment')">Comment only</button>
+      <button class="abtn ${st.action==='reject'?'on-reject':''}" onclick="decide('${f.id}','reject')">Reject</button>
+      ${f.kind!=='comment'?`<label class="ascomment"><input type="checkbox" ${st.as_comment?'checked':''} onchange="setAsComment('${f.id}',this.checked)"> also add explanatory comment</label>`:''}
+    </div>`;
+  return card;
+}
+
+function decide(id,action){ state[id].action=action; render(); scrollKeep(id); }
+function setEdit(id,v){ state[id].final_edit=v; }
+function setNote(id,v){ state[id].note=v; }
+function setAsComment(id,v){ state[id].as_comment=v; }
+function scrollKeep(id){ const el=document.getElementById('card-'+id); if(el) el.scrollIntoView({block:'nearest'});}
+
+function updateCounts(){
+  let a=0,r=0,c=0,u=0;
+  (DATA.findings||[]).forEach(f=>{const x=state[f.id].action;
+    if(x==='accept')a++; else if(x==='reject')r++; else if(x==='comment')c++; else u++;});
+  cAcc.textContent=a; cRej.textContent=r; cCom.textContent=c; cUnd.textContent=u;
+  pDone.textContent=a+r+c;
+}
+
+function quickAllAccept(){ (DATA.findings||[]).forEach(f=>{ if(!state[f.id].action) state[f.id].action='accept';}); render(); }
+
+function buildDecisions(){
+  const d=DATA.document||{};
+  return {
+    source_analysis:d.source_file||'analysis.json',
+    document_title:d.title||'',
+    author_name:d.author_name||'',
+    author_initials:d.author_initials||'',
+    generated_at:new Date().toISOString(),
+    decisions:(DATA.findings||[]).filter(f=>state[f.id].action).map(f=>{
+      const st=state[f.id]; const o={id:f.id, action:st.action};
+      if(st.action!=='reject'){ o.final_edit=st.final_edit||''; o.note=st.note||''; }
+      if(st.action==='accept' && f.kind!=='comment') o.as_comment=!!st.as_comment;
+      return o;
+    })
+  };
+}
+
+function openExport(){
+  document.getElementById('jsonOut').value=JSON.stringify(buildDecisions(),null,2);
+  document.getElementById('modal').classList.add('show');
+}
+function closeExport(){ document.getElementById('modal').classList.remove('show'); }
+function copyJson(){ const t=document.getElementById('jsonOut'); t.select();
+  navigator.clipboard.writeText(t.value).then(()=>{},()=>{document.execCommand('copy');}); }
+function downloadJson(){ const blob=new Blob([document.getElementById('jsonOut').value],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='decisions.json'; a.click();
+  URL.revokeObjectURL(a.href); }
+
+function esc(s){ return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function cap(s){ return String(s||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
+
+init();
+</script>
+</body>
+</html>

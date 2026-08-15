@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin.json",
+  "name": "contract-review",
+  "description": "Diligent contract review from one party's perspective: favorability scoring, clause-by-clause redline, an interactive review, and a regenerated .docx with tracked changes and threaded comments authored as you.",
+  "version": "1.0.0",
+  "author": { "name": "SaarthiOS" },
+  "homepage": "https://saarthios.github.io/contract-review/",
+  "repository": "https://github.com/SaarthiOS/contract-review",
+  "license": "MIT",
+  "keywords": ["legal", "contract", "nda", "redline", "review", "docx", "negotiation"]
+}

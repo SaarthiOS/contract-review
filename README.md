@@ -4,9 +4,9 @@ A Claude skill that reads an agreement from **your** side, scores how fair it is
 and hands back a redlined document — tracked changes and threaded comments,
 authored as you — in one pass.
 
-![Favorability analysis](media/analyse.png)
+![Contract Review in action — analyse, review, redline](media/demo.gif)
 
-**▶ [Watch the 36-second demo](media/demo.mp4)** &nbsp;·&nbsp; **[Landing page / walkthrough](https://saarthios.github.io/contract-review/)**
+**[▶ Full-quality video + walkthrough](https://saarthios.github.io/contract-review/)** &nbsp;·&nbsp; [download the MP4](media/demo.mp4)
 
 ---
 
